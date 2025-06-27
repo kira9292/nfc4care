@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: nfc4care-postgres
+    environment:
+      POSTGRES_DB: nfc4care
+      POSTGRES_USER: nfc4care
+      POSTGRES_PASSWORD: nfc4care
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - nfc4care-network
+
+  backend:
+    build: .
+    container_name: nfc4care-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/nfc4care
+      SPRING_DATASOURCE_USERNAME: nfc4care
+      SPRING_DATASOURCE_PASSWORD: nfc4care
+      BLOCKFROST_API_KEY: YOUR_BLOCKFROST_API_KEY_HERE
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - nfc4care-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  nfc4care-network:
+    driver: bridge 
